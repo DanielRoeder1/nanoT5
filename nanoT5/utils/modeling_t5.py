@@ -734,9 +734,12 @@ class T5ForConditionalGeneration(T5PreTrainedModel):
         return reordered_decoder_past
 
 class KnowledgeEncoder(nn.Module):
-    def __init__(self,model_config) -> None:
+    def __init__(self,model_config, enc_model) -> None:
         super().__init__()
-        self.enc = AutoModel.from_pretrained(model_config.know_enc_name)
+        if enc_model is not None:
+            self.enc = enc_model
+        else:
+            self.enc = AutoModel.from_pretrained(model_config.know_enc_name)
         self.pooling_strategy = model_config.pooling_strategy
 
     def forward(self, enc_inputs):
@@ -757,21 +760,19 @@ class KnowledgeEncoder(nn.Module):
 class T5KnowledgeWrapper(nn.Module):
     def __init__(self,model_config) -> None:
         super().__init__()
-        self.T5 = T5ForConditionalGeneration.from_pretrained(model_config)
-        self.enc = KnowledgeEncoder(model_config)
+        self.T5 = T5ForConditionalGeneration.from_pretrained(model_config._name_or_path, config = model_config)
+        self.enc = KnowledgeEncoder(model_config, enc_model = self.T5.encoder if model_config.know_enc_name == 'T5' else None)
     
     def forward(self, t5_inputs, enc_inputs):
         batch_size = t5_inputs["input_ids"].shape[0]
-        knowledge_embeddings = self.enc(**enc_inputs)
+        knowledge_embeddings = self.enc(enc_inputs)
         knowledge_embeddings = knowledge_embeddings.reshape(batch_size,-1,self.enc.config.dim)
         return self.T5(**t5_inputs, knowledge_embeddings = knowledge_embeddings)
     
     def cls_pooling(self,model_output):
         return model_output.last_hidden_state[:,0]
-        
 
 from transformers import DataCollatorForSeq2Seq
-
 class DataCollateForKnowledgeSeq2Seq:
     def __init__(self, gen_tokenizer, enc_tokenizer, gen_model):
         self.seq2seq_collator = DataCollatorForSeq2Seq(gen_tokenizer, gen_model)
