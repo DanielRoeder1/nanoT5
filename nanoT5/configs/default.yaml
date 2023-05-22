@@ -28,6 +28,7 @@ data:
   mean_noise_span_length: 3.0
   num_workers: 8
   data_dir: "some_path"
+  test_size: 10_000
 
 optim:
   name: adamwscale
