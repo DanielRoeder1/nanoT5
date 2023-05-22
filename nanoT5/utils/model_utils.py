@@ -8,7 +8,6 @@ from transformers import (
     T5ForConditionalGeneration,
     AutoConfig,
 )
-from modeling_t5 import T5ForKnowledgeGroundedGeneration
 
 from .copied_utils import (
     compute_input_and_target_lengths,
@@ -17,10 +16,11 @@ from .copied_utils import (
     DataCollatorForNI,
 )
 
+from .modeling_t5 import T5KnowledgeWrapper
 # [KFormer] -> added different model class
 def get_model(args, config):
     if args.model.knowledge_injection:
-        model = T5ForKnowledgeGroundedGeneration
+        model = T5KnowledgeWrapper
     else:
         model = T5ForConditionalGeneration
 
@@ -43,7 +43,7 @@ def get_config(args):
     if args.model.knowledge_injection:
         config.know_layer = args.model.know_layer
         config.know_dim = args.model.know_dim
-        config.know_enc_name = args.know_model.enc_name
+        config.know_enc_name = args.model.know_enc_name
         config.pooling_strategy = args.model.pooling_strategy
     return config
 
@@ -164,12 +164,18 @@ def get_data_collator(tokenizer, config, args):
 
 # [Kformer] -> added seperate collator and dataset loading
 from datasets import load_from_disk
-from modeling_t5 import DataCollateForKnowledgeSeq2Seq
+from .modeling_t5 import DataCollateForKnowledgeSeq2Seq
+from data_scripts import get_dataset
 def get_dataloaders(tokenizer, config, args, model):
-    if args.knowledge_injection:
-        dataset = load_from_disk(args.data.data_dir)
+    if args.model.knowledge_injection:
+        know_tokenizer = AutoTokenizer.from_pretrained(args.model.know_enc_name) if args.model.know_enc_name != "T5" else tokenizer
+        if args.data.data_dir.endswith(".csv"):
+            dataset = get_dataset(args.data.data_dir, tokenizer, know_tokenizer=know_tokenizer)
+            dataset = dataset.train_test_split(test_size = args.data.test_size, seed = args.seed)
+        else:
+            dataset = load_from_disk(args.data.data_dir)
         # tokenizers only used for padding thus T5 tokenizer should be enough
-        data_collator = DataCollateForKnowledgeSeq2Seq(tokenizer, tokenizer, model.T5)
+        data_collator = DataCollateForKnowledgeSeq2Seq(tokenizer, know_tokenizer, model.T5)
     else:
         dataset_splits = load_dataset_splits(args)
         dataset = process_dataset(dataset_splits=dataset_splits, args=args, tokenizer=tokenizer)
@@ -188,10 +194,11 @@ def get_dataloaders(tokenizer, config, args, model):
 
         shuffle = (split == 'train') and not is_iterable
 
-        if args.mode == 'ft' and split == 'train':
-            assert shuffle is True
-        else:
-            assert shuffle is False
+        # Addjust fintuning task config first
+        #if args.mode == 'ft' and split == 'train':
+        #    assert shuffle is True
+        #else:
+        #    assert shuffle is False
 
         dataloaders[split] = DataLoader(
             dataset[split],
