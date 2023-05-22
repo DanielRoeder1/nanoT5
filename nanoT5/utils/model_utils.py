@@ -8,6 +8,7 @@ from transformers import (
     T5ForConditionalGeneration,
     AutoConfig,
 )
+from modeling_t5 import T5ForKnowledgeGroundedGeneration
 
 from .copied_utils import (
     compute_input_and_target_lengths,
@@ -16,31 +17,34 @@ from .copied_utils import (
     DataCollatorForNI,
 )
 
-
+# [KFormer] -> added different model class
 def get_model(args, config):
+    if args.model.knowledge_injection:
+        model = T5ForKnowledgeGroundedGeneration
+    else:
+        model = T5ForConditionalGeneration
+
     if args.model.checkpoint_path:
-        model = T5ForConditionalGeneration(
-            config,
-        )
+        model = model(config)
         model.load_state_dict(torch.load(args.model.checkpoint_path))
     elif args.model.random_init:
-        model = T5ForConditionalGeneration(
-            config,
-        )
+        model = model(config,)
     else:
-        model = T5ForConditionalGeneration.from_pretrained(
-            args.model.name,
-            config=config,
-        )
+        model = model.from_pretrained(args.model.name,config=config,)
 
     return model
 
-
+# [KFormer] -> added fields to model config
 def get_config(args):
     config = AutoConfig.from_pretrained(
         args.model.name,
     )
     config.dropout_rate = args.model.dropout
+    if args.model.knowledge_injection:
+        config.know_layer = args.model.know_layer
+        config.know_dim = args.model.know_dim
+        config.know_enc_name = args.know_model.enc_name
+        config.pooling_strategy = args.model.pooling_strategy
     return config
 
 
@@ -158,11 +162,19 @@ def get_data_collator(tokenizer, config, args):
     return data_collator
 
 
-def get_dataloaders(tokenizer, config, args):
-    dataset_splits = load_dataset_splits(args)
-    dataset = process_dataset(dataset_splits=dataset_splits, args=args, tokenizer=tokenizer)
-    data_collator = get_data_collator(tokenizer=tokenizer, config=config,
-                                      args=args)
+# [Kformer] -> added seperate collator and dataset loading
+from datasets import load_from_disk
+from modeling_t5 import DataCollateForKnowledgeSeq2Seq
+def get_dataloaders(tokenizer, config, args, model):
+    if args.knowledge_injection:
+        dataset = load_from_disk(args.data.data_dir)
+        # tokenizers only used for padding thus T5 tokenizer should be enough
+        data_collator = DataCollateForKnowledgeSeq2Seq(tokenizer, tokenizer, model.T5)
+    else:
+        dataset_splits = load_dataset_splits(args)
+        dataset = process_dataset(dataset_splits=dataset_splits, args=args, tokenizer=tokenizer)
+        data_collator = get_data_collator(tokenizer=tokenizer, config=config,
+                                        args=args)
 
     is_iterable = isinstance(dataset['train'], IterableDataset)
 
