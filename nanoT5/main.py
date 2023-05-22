@@ -27,7 +27,7 @@ def main(args):
     tokenizer = get_tokenizer(args)
     optimizer = get_optimizer(model, args)
     lr_scheduler = get_lr_scheduler(optimizer, args, logger)
-    train_dataloader, test_dataloader = get_dataloaders(tokenizer, config, args)
+    train_dataloader, test_dataloader = get_dataloaders(tokenizer, config, args, model)
 
     logger.log_args(args)
 
