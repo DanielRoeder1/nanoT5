@@ -87,8 +87,12 @@ def extra_stats(args, model, optimizer):
     return stats
 
 
-def forward(model, batch, calc_acc=False):
-    outputs = model(**batch)
+def forward(model, batch, adj_forward,calc_acc=False):
+    if adj_forward:
+        t5_inputs, enc_inputs = batch
+        outputs = model(t5_inputs, enc_inputs)
+    else:
+        outputs = model(**batch)
     loss = outputs.loss
 
     stats = {}
@@ -110,7 +114,7 @@ def eval(model, dataloader, logger, args, tokenizer):
         if batch_id == args.eval.corrected_steps * args.optim.grad_acc:
             break
 
-        _, stats = forward(model, batch, calc_acc=True)
+        _, stats = forward(model, batch, calc_acc=True, adj_forward = args.model.knowledge_injection)
         averager.update(stats)
 
     averager.update({'time': time.time() - args.last_log})
@@ -190,7 +194,7 @@ def train(model, train_dataloader, test_dataloader, accelerator, lr_scheduler,
             if args.current_train_step > args.optim.total_steps:
                 break
 
-            loss, stats = forward(model, batch)
+            loss, stats = forward(model, batch, adj_forward=args.model.knowledge_injection)
             accelerator.backward(loss / args.optim.grad_acc)
             train_averager.update(stats)
 
