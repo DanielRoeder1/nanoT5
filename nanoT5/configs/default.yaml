@@ -15,12 +15,19 @@ model:
   dropout: 0.0
   random_init: true
   compile: false # Pytorch 2.0
+  knowledge_injection: True
+  know_layer: [8,9,10]
+  know_dim: 768
+  know_enc_name: 'sentence-transformers/all-mpnet-base-v2'
+  pooling_strategy: 'mean'
+  
 
 data:
   input_length: 512
   mlm_probability: 0.15
   mean_noise_span_length: 3.0
   num_workers: 8
+  data_dir: "some_path"
 
 optim:
   name: adamwscale
