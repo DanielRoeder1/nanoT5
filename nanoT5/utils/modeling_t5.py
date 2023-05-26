@@ -761,12 +761,12 @@ class T5KnowledgeWrapper(nn.Module):
     def __init__(self,model_config) -> None:
         super().__init__()
         self.T5 = T5ForConditionalGeneration.from_pretrained(model_config._name_or_path, config = model_config)
-        self.enc = KnowledgeEncoder(model_config, enc_model = self.T5.encoder if model_config.know_enc_name == 'T5' else None)
+        self.know_enc = KnowledgeEncoder(model_config, enc_model = self.T5.encoder if model_config.know_enc_name == 'T5' else None)
     
     def forward(self, t5_inputs, enc_inputs):
         batch_size = t5_inputs["input_ids"].shape[0]
-        knowledge_embeddings = self.enc(enc_inputs)
-        knowledge_embeddings = knowledge_embeddings.reshape(batch_size,-1,self.enc.config.dim)
+        knowledge_embeddings = self.know_enc(enc_inputs)
+        knowledge_embeddings = knowledge_embeddings.reshape(batch_size,-1,self.know_enc.enc.config.dim)
         return self.T5(**t5_inputs, knowledge_embeddings = knowledge_embeddings)
     
     def cls_pooling(self,model_output):
