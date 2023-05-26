@@ -36,7 +36,8 @@ def data_switching(mode, query, p, a, tokenizer):
         a_p = p + " " + sep_token + " " + a
         output =  {'input_ids': query, 'decoder_input_ids': a_p}
     elif mode == "q_p_a":
-        p = sep_token + " " + p
+        if sep_token is not None:
+            p = sep_token + " " + p
         output =  {'input_ids': query, 'p_input_ids':p, 'labels': a}
     # Remove samples that are longer than the model max length
     if any([True if len(tokenizer.tokenize(v)) > tokenizer.model_max_length  else False for v in output.values()]): 

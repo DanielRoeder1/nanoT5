@@ -165,11 +165,12 @@ def get_data_collator(tokenizer, config, args):
 # [Kformer] -> added seperate collator and dataset loading
 from datasets import load_from_disk
 from .modeling_t5 import DataCollateForKnowledgeSeq2Seq
-from data_scripts import get_dataset
+from .data_scripts import get_dataset
 def get_dataloaders(tokenizer, config, args, model):
     if args.model.knowledge_injection:
         know_tokenizer = AutoTokenizer.from_pretrained(args.model.know_enc_name) if args.model.know_enc_name != "T5" else tokenizer
         if args.data.data_dir.endswith(".csv"):
+            print("##### Loading & Processing data from CSV file #####")
             dataset = get_dataset(args.data.data_dir, tokenizer, know_tokenizer=know_tokenizer)
             dataset = dataset.train_test_split(test_size = args.data.test_size, seed = args.seed)
         else:
