@@ -171,8 +171,7 @@ def get_dataloaders(tokenizer, config, args, model):
         know_tokenizer = AutoTokenizer.from_pretrained(args.model.know_enc_name) if args.model.know_enc_name != "T5" else tokenizer
         if args.data.data_dir.endswith(".csv"):
             print("##### Loading & Processing data from CSV file #####")
-            dataset = get_dataset(args.data.data_dir, tokenizer, know_tokenizer=know_tokenizer)
-            dataset = dataset.train_test_split(test_size = args.data.test_size, seed = args.seed)
+            dataset = get_dataset(args.data.data_dir, tokenizer, args, know_tokenizer=know_tokenizer)
         else:
             dataset = load_from_disk(args.data.data_dir)
         # tokenizers only used for padding thus T5 tokenizer should be enough

@@ -8,7 +8,9 @@ import os
 ######################################################
 
 def get_dataset(data_path, 
-                tokenizer,mode = "q_p_a", 
+                tokenizer,
+                args,
+                mode = "q_p_a", 
                 column_lookup = {"query": "instruction", "passage": "context", "response": "response"}, 
                 know_tokenizer = None, 
                 save_data = True):
@@ -21,6 +23,7 @@ def get_dataset(data_path,
                 process_dataset.append(inputs)
     df = Dataset.from_list(process_dataset)
     df = df.map(tokenize_function, batched=True, fn_kwargs={"tokenizer": tokenizer, "know_tokenizer": know_tokenizer}, remove_columns= df.column_names)
+    df = df.train_test_split(test_size = args.data.test_size, seed = args.seed)
     if save_data:
         save_path = os.path.join(os.path.dirname(data_path), "hf_processed_data")
         df.save_to_disk(save_path)
