@@ -766,7 +766,7 @@ class T5KnowledgeWrapper(nn.Module):
     def forward(self, t5_inputs, enc_inputs):
         batch_size = t5_inputs["input_ids"].shape[0]
         knowledge_embeddings = self.know_enc(enc_inputs)
-        knowledge_embeddings = knowledge_embeddings.reshape(batch_size,-1,self.know_enc.enc.config.dim)
+        knowledge_embeddings = knowledge_embeddings.reshape(batch_size,-1,self.T5.config.know_dim)
         return self.T5(**t5_inputs, knowledge_embeddings = knowledge_embeddings)
     
     def cls_pooling(self,model_output):

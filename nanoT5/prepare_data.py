@@ -10,7 +10,7 @@ def prepare_data():
   tokenizer = get_tokenizer(args)
   if args.model.knowledge_injection:
     know_tokenizer = AutoTokenizer.from_pretrained(args.model.know_enc_name) if args.model.know_enc_name != "T5" else tokenizer
-  dataset = get_dataset(args.data.data_dir, tokenizer, args know_tokenizer=know_tokenizer, save_data=False)
+  dataset = get_dataset(args.data.data_dir, tokenizer, args, know_tokenizer=know_tokenizer, save_data=False)
   print(dataset)
   return dataset
 
