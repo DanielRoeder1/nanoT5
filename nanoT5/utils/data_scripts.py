@@ -1,12 +1,17 @@
 import pandas as pd
 from tqdm import tqdm
 from datasets import Dataset
+import os
 
 ######################################################
 # Functions for tokenizing MSMACRO and GPTDolly data #
 ######################################################
 
-def get_dataset(data_path, tokenizer,mode = "q_p_a", column_lookup = {"query": "instruction", "passage": "context", "response": "response"}, know_tokenizer = None):
+def get_dataset(data_path, 
+                tokenizer,mode = "q_p_a", 
+                column_lookup = {"query": "instruction", "passage": "context", "response": "response"}, 
+                know_tokenizer = None, 
+                save_data = True):
     if know_tokenizer is None: know_tokenizer = tokenizer
     data = pd.read_csv(data_path).dropna()
     process_dataset = []
@@ -16,6 +21,9 @@ def get_dataset(data_path, tokenizer,mode = "q_p_a", column_lookup = {"query": "
                 process_dataset.append(inputs)
     df = Dataset.from_list(process_dataset)
     df = df.map(tokenize_function, batched=True, fn_kwargs={"tokenizer": tokenizer, "know_tokenizer": know_tokenizer}, remove_columns= df.column_names)
+    if save_data:
+        save_path = os.path.join(os.path.dirname(data_path), "hf_processed_data")
+        df.save_to_disk(save_path)
     return df
 
 def data_switching(mode, query, p, a, tokenizer):
