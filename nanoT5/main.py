@@ -1,6 +1,5 @@
 from accelerate import Accelerator
 from omegaconf import open_dict
-import hydra
 import torch
 import time
 
@@ -15,11 +14,11 @@ from .utils import (
     get_model,
     get_dataloaders,
     get_config,
+    get_args,	
 )
 
-
-@hydra.main(config_path="configs", config_name="default", version_base='1.1')
-def main(args):
+def main():
+    args = get_args("default")
     accelerator = Accelerator(cpu=args.device == "cpu")
     logger = setup_basics(accelerator, args)
     config = get_config(args)
