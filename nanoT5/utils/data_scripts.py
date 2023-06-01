@@ -35,8 +35,7 @@ def data_switching(mode, query, p, a, tokenizer):
     """
     assert mode in ["q_a", "qp_a", "q_pa","q_p_a"], "select one of the following modes: q_a, qp_a, q_pa, q_p_a"
     if mode in ["q_pa", "qp_a"]: assert tokenizer.sep_token_id is not None, "tokenizer must have a sep_token_id for mode q_pa or qp_a"
-    
-    sep_token = tokenizer.sep_token
+    sep_token = tokenizer.sep_token if tokenizer.sep_token_id is not None else None
     query,p,a = query.strip(), p.strip(), a.strip()
     if mode == "q_a":
         output =  {'input_ids': query, 'labels': a}

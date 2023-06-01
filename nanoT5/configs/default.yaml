@@ -27,7 +27,7 @@ data:
   mlm_probability: 0.15
   mean_noise_span_length: 3.0
   num_workers: 8
-  data_dir: "some_path"
+  data_dir: "/content/drive/MyDrive/Master_Thesis/train_data/MSMacro/msmacro_processed.csv"
   test_size: 10_000
 
 optim:
