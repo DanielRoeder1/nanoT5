@@ -5,8 +5,9 @@ from omegaconf import OmegaConf, open_dict
 import logging
 import datasets
 import transformers
-import neptune
 import os
+
+import wandb
 
 
 class Averager:
@@ -52,33 +53,17 @@ class Logger:
             datasets.utils.logging.set_verbosity_error()
             transformers.utils.logging.set_verbosity_error()
 
-        self.setup_neptune(args)
+        self.setup_wandb(args)
 
-    def setup_neptune(self, args):
-        if args.logging.neptune:
-            neptune_logger = neptune.init_run(
-                project=args.logging.neptune_creds.project,
-                api_token=args.logging.neptune_creds.api_token,
-                tags=[str(item) for item in args.logging.neptune_creds.tags.split(",")],
-            )
-        else:
-            neptune_logger = None
-
-        self.neptune_logger = neptune_logger
-
-        with open_dict(args):
-            if neptune_logger is not None:
-                args.neptune_id = neptune_logger["sys/id"].fetch()
-
-    def log_args(self, args):
-        if self.neptune_logger is not None:
-            logging_args = OmegaConf.to_container(args, resolve=True)
-            self.neptune_logger['args'] = logging_args
+    def setup_wandb(self, args):
+        if args.logging.wandb:
+            wandb.login(key = args.logging.wandb_key)
+            wandb.init(args.logging.project_name, config=args.__dict__)
 
     def log_stats(self, stats, step, args, prefix=''):
-        if self.neptune_logger is not None:
+        if self.l is not None:
             for k, v in stats.items():
-                self.neptune_logger[f'{prefix}{k}'].log(v, step=step)
+                wandb.log({f'{prefix}{k}': v}, step=step)
 
         msg_start = f'[{prefix[:-1]}] Step {step} out of {args.optim.total_steps}' + ' | '
         dict_msg = ' | '.join([f'{k.capitalize()} --> {v:.3f}' for k, v in stats.items()]) + ' | '
@@ -91,5 +76,4 @@ class Logger:
         self.logger.info(msg)
 
     def finish(self):
-        if self.neptune_logger is not None:
-            self.neptune_logger.stop()
+        wandb.finish()
