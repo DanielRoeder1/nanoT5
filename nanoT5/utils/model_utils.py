@@ -19,18 +19,22 @@ from .copied_utils import (
 from .modeling_t5 import T5KnowledgeWrapper
 # [KFormer] -> added different model class
 def get_model(args, config):
-    if args.model.knowledge_injection:
-        model = T5KnowledgeWrapper
+    if args.model.mode == "q_p_a":
+        print("##### Loading model from pretrained #####")
+        model = T5KnowledgeWrapper(config)
     else:
         model = T5ForConditionalGeneration
 
-    if args.model.checkpoint_path:
-        model = model(config)
-        model.load_state_dict(torch.load(args.model.checkpoint_path))
-    elif args.model.random_init:
-        model = model(config,)
-    else:
-        model = model.from_pretrained(args.model.name,config=config,)
+        if args.model.checkpoint_path:
+            print("##### Loading model from checkpoint path #####")
+            model = model(config)
+            model.load_state_dict(torch.load(args.model.checkpoint_path))
+        elif args.model.random_init:
+            print("##### Random initializing model #####")
+            model = model(config,)
+        else:
+            print("##### Loading model from pretrained #####")
+            model = model.from_pretrained(args.model.name,config=config,)
 
     return model
 
@@ -40,7 +44,7 @@ def get_config(args):
         args.model.name,
     )
     config.dropout_rate = args.model.dropout
-    if args.model.knowledge_injection:
+    if args.model.mode == "q_p_a":
         config.know_layer = args.model.know_layer
         config.know_dim = args.model.know_dim
         config.know_enc_name = args.model.know_enc_name
@@ -54,7 +58,9 @@ def get_tokenizer(args):
         use_fast=True
     )
     tokenizer.model_max_length = int(1e9)
-
+    # Adds a sep_token if it is missing, which is the case for T5 models
+    if args.model.mode in ["q_pa", "qp_a"] and tokenizer.sep_token is None:
+        tokenizer.add_special_tokens({'sep_token': '<sep>'})
     return tokenizer
 
 
@@ -166,21 +172,18 @@ def get_data_collator(tokenizer, config, args):
 from datasets import load_from_disk
 from .modeling_t5 import DataCollateForKnowledgeSeq2Seq
 from .data_scripts import get_dataset
-def get_dataloaders(tokenizer, config, args, model):
-    if args.model.knowledge_injection:
-        know_tokenizer = AutoTokenizer.from_pretrained(args.model.know_enc_name) if args.model.know_enc_name != "T5" else tokenizer
-        if args.data.data_dir.endswith(".csv"):
-            print("##### Loading & Processing data from CSV file #####")
-            dataset = get_dataset(args.data.data_dir, tokenizer, args, know_tokenizer=know_tokenizer)
-        else:
-            dataset = load_from_disk(args.data.data_dir)
-        # tokenizers only used for padding thus T5 tokenizer should be enough
-        data_collator = DataCollateForKnowledgeSeq2Seq(tokenizer, know_tokenizer, model.T5)
+def get_dataloaders(tokenizer, args, model):
+    # Adjusting embedding layer for case where sep_token was added
+    t5_model = model if isinstance(model, T5ForConditionalGeneration) else model.T5
+    t5_model.resize_token_embeddings(len(tokenizer))
+    if args.data.data_dir.endswith(".csv"):
+        print("##### Loading & Processing data from CSV file #####")
+        dataset = get_dataset(args, tokenizer)
     else:
-        dataset_splits = load_dataset_splits(args)
-        dataset = process_dataset(dataset_splits=dataset_splits, args=args, tokenizer=tokenizer)
-        data_collator = get_data_collator(tokenizer=tokenizer, config=config,
-                                        args=args)
+        print("##### Loading data from HuggingFace dataset #####")
+        dataset = load_from_disk(args.data.data_dir)
+    
+    data_collator = DataCollateForKnowledgeSeq2Seq(tokenizer, tokenizer, t5_model)
 
     is_iterable = isinstance(dataset['train'], IterableDataset)
 
