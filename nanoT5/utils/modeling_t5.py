@@ -781,10 +781,11 @@ class DataCollateForKnowledgeSeq2Seq:
     def __call__(self,batch):
         if "p_input_ids" in batch[0].keys():
             p_input_ids = [{"input_ids":entry.pop("p_input_ids")} for entry in batch]
-            enc_inputs = self.enc_tokenizer.pad(p_input_ids, return_tensors="pt")
+            enc_inputs = self.enc_tokenizer.pad(p_input_ids, return_tensors="pt", return_attention_mask=True)
+        else:
+            enc_inputs = None
 
         gen_inputs = self.seq2seq_collator(batch)
-
         return gen_inputs, enc_inputs
 
 if __name__ == "__main__":
