@@ -59,7 +59,7 @@ def get_tokenizer(args):
     )
     tokenizer.model_max_length = int(1e9)
     # Adds a sep_token if it is missing, which is the case for T5 models
-    if args.model.mode in ["q_pa", "qp_a"] and tokenizer.sep_token is None:
+    if args.model.mode in ["q_pa", "qp_a"] and tokenizer.sep_token_id is None:
         tokenizer.add_special_tokens({'sep_token': '<sep>'})
     return tokenizer
 
