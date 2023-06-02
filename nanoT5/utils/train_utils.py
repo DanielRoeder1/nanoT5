@@ -88,11 +88,11 @@ def extra_stats(args, model, optimizer):
 
 
 def forward(model, batch, adj_forward,calc_acc=False):
+    t5_inputs, enc_inputs = batch
     if adj_forward:
-        t5_inputs, enc_inputs = batch
         outputs = model(t5_inputs, enc_inputs)
     else:
-        outputs = model(**batch)
+        outputs = model(**t5_inputs)
     loss = outputs.loss
 
     stats = {}
@@ -194,7 +194,7 @@ def train(model, train_dataloader, test_dataloader, accelerator, lr_scheduler,
             if args.current_train_step > args.optim.total_steps:
                 break
 
-            loss, stats = forward(model, batch, adj_forward=args.model.knowledge_injection)
+            loss, stats = forward(model, batch, adj_forward=args.model.mode == "q_p_a")
             accelerator.backward(loss / args.optim.grad_acc)
             train_averager.update(stats)
 
