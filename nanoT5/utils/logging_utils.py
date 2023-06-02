@@ -1,7 +1,6 @@
 from collections import defaultdict
 
 from accelerate.logging import get_logger
-from omegaconf import OmegaConf, open_dict
 import logging
 import datasets
 import transformers
@@ -61,7 +60,7 @@ class Logger:
             wandb.init(args.logging.project_name, config=args.__dict__)
 
     def log_stats(self, stats, step, args, prefix=''):
-        if self.l is not None:
+        if args.logging.wandb:
             for k, v in stats.items():
                 wandb.log({f'{prefix}{k}': v}, step=step)
 
