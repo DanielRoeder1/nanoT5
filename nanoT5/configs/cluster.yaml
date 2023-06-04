@@ -1,0 +1,67 @@
+defaults:
+  - _self_
+  - task: pt
+
+# Experiment args
+mode: 'ft'
+device: gpu
+eval_only: false
+predict_only: false
+seed: 2137
+
+model:
+  name: 'google/t5-v1_1-base'
+  checkpoint_path: ''
+  dropout: 0.0
+  random_init: false
+  compile: false # Pytorch 2.0
+  mode: "q_p_a" # q_a, q_pa, qp_a, q_p_a
+  know_layer: [8,9,10]
+  know_dim: 768
+  know_enc_name: 'sentence-transformers/all-mpnet-base-v2'
+  pooling_strategy: 'mean'
+  
+
+data:
+  input_length: 512
+  mlm_probability: 0.15
+  mean_noise_span_length: 3.0
+  num_workers: 4
+  data_dir: '/netscratch/roeder/msmacro/msmacro_processed.csv'
+  test_size: 10_000
+  # Add mask context
+
+optim:
+  name: adamwscale
+  base_lr: 2e-2
+  batch_size: 25
+  total_steps: 0
+  epochs: 1 # If it's > 0 it overwrites total_steps
+  warmup_steps: 500
+  lr_scheduler: cosine
+  weight_decay: 0.0
+  grad_clip: 1.0
+  grad_acc: 4
+  final_cosine: 1e-5
+
+eval:
+  every_steps: 10_000 # Don't eval
+  steps: 500
+
+checkpoint:
+  every_steps: 10_000
+  save_dir: '/netscratch/roeder/'
+
+logging:
+  wandb: true
+  wandb_credential_path: "wandb_key.txt"
+  project_name: "msmacro"
+  every_steps: 100
+  grad_l2: true
+  weights_l2: true
+
+hydra:
+  job:
+    chdir: True
+  run:
+    dir: ./logs/${now:%Y-%m-%d}/${now:%H-%M-%S}
