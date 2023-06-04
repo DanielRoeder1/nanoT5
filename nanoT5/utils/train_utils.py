@@ -4,13 +4,16 @@ import evaluate
 from .logging_utils import Averager
 from datasets.iterable_dataset import IterableDataset
 
-
+import os
 def maybe_save_checkpoint(accelerator, args):
     if (
         args.current_train_step > args.optim.total_steps
         or args.current_train_step % args.checkpoint.every_steps == 0
     ):
-        output_dir = f'checkpoint-{args.mode}-{args.current_train_step}'
+        model_name = args.model.name.replace("/","_")
+        output_dir = f'checkpoint_{args.mode}_{args.current_train_step}_{args.model.mode}_{model_name}'
+        if args.checkpoint.save_dir:
+            output_dir = os.path.join(args.checkpoint.save_dir, output_dir)
         accelerator.save_state(output_dir=output_dir)
 
 
@@ -114,7 +117,7 @@ def eval(model, dataloader, logger, args, tokenizer):
         if batch_id == args.eval.corrected_steps * args.optim.grad_acc:
             break
 
-        _, stats = forward(model, batch, calc_acc=True, adj_forward = args.model.knowledge_injection)
+        _, stats = forward(model, batch, calc_acc=True, adj_forward = args.model.mode == "q_p_a")
         averager.update(stats)
 
     averager.update({'time': time.time() - args.last_log})

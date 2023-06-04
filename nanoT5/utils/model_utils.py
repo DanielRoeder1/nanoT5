@@ -177,7 +177,7 @@ def get_dataloaders(tokenizer, args, model):
     t5_model = model if isinstance(model, T5ForConditionalGeneration) else model.T5
     t5_model.resize_token_embeddings(len(tokenizer))
     if args.data.data_dir.endswith(".csv"):
-        print("##### Loading & Processing data from CSV file #####")
+        print(f"##### Loading & Processing data from CSV file mode: {args.model.mode} #####")
         dataset = get_dataset(args, tokenizer)
     else:
         print("##### Loading data from HuggingFace dataset #####")
