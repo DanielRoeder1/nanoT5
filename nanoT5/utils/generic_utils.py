@@ -5,6 +5,9 @@ def get_args(config_path = "default"):
   dir_path = os.path.dirname(__file__)
   if config_path == "default":
     config_path = os.path.join(dir_path, "../configs/default.yaml")
+  elif config_path == "cluster":
+    config_path = os.path.join(dir_path, "../configs/cluster.yaml")
+
   
   args = OmegaConf.load(config_path)
 
