@@ -1,7 +1,22 @@
 import os
 from omegaconf import OmegaConf
+import argparse
 
-def get_args(config_path = "default"):
+def parse_args():
+    parser = argparse.ArgumentParser()
+    parser.add_argument(
+        "--config_path",
+        type=str,
+        default = 'default',
+        help = "Provide path to config.yaml if not provided default.yaml will be used"
+    )
+    args = parser.parse_args()
+    return
+
+def get_args(config_path = None):
+  if config_path is None:
+     config_path = parse_args()["config_path"]
+     
   dir_path = os.path.dirname(__file__)
   if config_path == "default":
     config_path = os.path.join(dir_path, "../configs/default.yaml")

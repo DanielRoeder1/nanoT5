@@ -18,7 +18,7 @@ from .utils import (
 )
 
 def main():
-    args = get_args("default")
+    args = get_args()
     accelerator = Accelerator(cpu=args.device == "cpu")
     logger = setup_basics(accelerator, args)
     config = get_config(args)
