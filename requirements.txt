@@ -12,3 +12,5 @@ nltk
 absl-py
 rouge_score
 wandb
+omegaconf
+hydra-core
