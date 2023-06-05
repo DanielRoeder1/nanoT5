@@ -17,9 +17,13 @@ from .utils import (
     get_args,	
 )
 
+
+from accelerate import DistributedDataParallelKwargs
+
 def main():
     args = get_args()
-    accelerator = Accelerator(cpu=args.device == "cpu")
+    ddp_kwargs = DistributedDataParallelKwargs(find_unused_parameters=True)
+    accelerator = Accelerator(cpu=args.device == "cpu",kwargs_handlers=[ddp_kwargs])
     logger = setup_basics(accelerator, args)
     config = get_config(args)
     model = get_model(args, config)
