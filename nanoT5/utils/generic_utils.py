@@ -11,11 +11,11 @@ def parse_args():
         help = "Provide path to config.yaml if not provided default.yaml will be used"
     )
     args = parser.parse_args()
-    return
+    return args
 
 def get_args(config_path = None):
   if config_path is None:
-     config_path = parse_args()["config_path"]
+     config_path = parse_args().config_path
      
   dir_path = os.path.dirname(__file__)
   if config_path == "default":
@@ -32,3 +32,8 @@ def get_args(config_path = None):
     with open(args.logging.wandb_credential_path, "r") as f:
       args.logging.wandb_key = f.read().strip()
   return args 
+
+
+if __name__ == "__main__":
+  args = get_args()
+  print(args)
