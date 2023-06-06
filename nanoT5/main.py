@@ -22,6 +22,7 @@ def main():
     args = get_args()
     modes = args.model.mode.copy()
     for mode in modes:
+        print(f"###### Starting training for mode: {mode} #####")
         args.model.mode = mode
         accelerator = Accelerator(cpu=args.device == "cpu")
         logger = setup_basics(accelerator, args)
