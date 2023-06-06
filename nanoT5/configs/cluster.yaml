@@ -45,8 +45,8 @@ optim:
   final_cosine: 1e-5
 
 eval:
-  every_steps: 2_000 # Don't eval
-  steps: 500
+  every_steps: 2_000
+  steps: -1 # if < 0 runs full eval
 
 checkpoint:
   every_steps: 10_000
