@@ -28,9 +28,10 @@ def main():
     config = get_config(args)
     model = get_model(args, config)
     tokenizer = get_tokenizer(args)
+    train_dataloader, test_dataloader = get_dataloaders(tokenizer, args, model)
     optimizer = get_optimizer(model, args)
     lr_scheduler = get_lr_scheduler(optimizer, args, logger)
-    train_dataloader, test_dataloader = get_dataloaders(tokenizer, args, model)
+
 
     (
         model,
