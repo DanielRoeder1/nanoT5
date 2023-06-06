@@ -42,6 +42,8 @@ def get_args(config_path = None, load_cmd =  True):
 
   if load_cmd and cmd_args.mode is not None:
      args.model.mode = cmd_args.mode
+
+  args.best_eval_loss = float('inf')
   return args 
 
 

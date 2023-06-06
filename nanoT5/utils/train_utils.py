@@ -9,12 +9,14 @@ def maybe_save_checkpoint(accelerator, args):
     if (
         args.current_train_step > args.optim.total_steps
         or args.current_train_step % args.checkpoint.every_steps == 0
+        or args.eval_save
     ):
         model_name = args.model.name.replace("/","_")
-        output_dir = f'checkpoint_{args.mode}_{args.current_train_step}_{args.model.mode}_{model_name}'
+        output_dir = f'checkpoint_{args.mode}_{args.current_train_step}_{args.model.mode}_{model_name}_{args.best_val_loss if args.eval_save else ""}'
         if args.checkpoint.save_dir:
             output_dir = os.path.join(args.checkpoint.save_dir, output_dir)
         accelerator.save_state(output_dir=output_dir)
+        args.eval_save = False
 
 
 def maybe_eval_predict(model, dataloader, logger, args, tokenizer):
@@ -122,6 +124,13 @@ def eval(model, dataloader, logger, args, tokenizer):
 
     averager.update({'time': time.time() - args.last_log})
     averaged_stats = averager.average()
+    
+    # maybe_save_checkpoint is called in the train func after eval
+    if averaged_stats['loss'] < args.best_eval_loss:
+        args.best_eval_loss = averaged_stats['loss']
+        args.eval_save = True
+    else:
+        args.eval_save = False
 
     logger.log_stats(
         stats=averaged_stats,
@@ -129,6 +138,7 @@ def eval(model, dataloader, logger, args, tokenizer):
         args=args,
         prefix='eval/'
     )
+
 
 
 def predict(model, dataloader, logger, args, tokenizer):
