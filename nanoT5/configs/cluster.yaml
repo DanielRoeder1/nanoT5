@@ -3,7 +3,7 @@ defaults:
   - task: pt
 
 # Experiment args
-mode: 'ft'
+mode: 'pt'
 device: gpu
 eval_only: false
 predict_only: false
@@ -27,7 +27,7 @@ data:
   mlm_probability: 0.15
   mean_noise_span_length: 3.0
   num_workers: 4
-  data_dir: '/netscratch/roeder/msmacro/msmacro_processed.csv'
+  data_dir: '/netscratch/roeder/ms_macro/msmacro_processed.csv'
   test_size: 10_000
   # Add mask context
 
@@ -50,7 +50,7 @@ eval:
 
 checkpoint:
   every_steps: 10_000
-  save_dir: '/netscratch/roeder/'
+  save_dir: '/netscratch/roeder/checkpoints'
 
 logging:
   wandb: true
