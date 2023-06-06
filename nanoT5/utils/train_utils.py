@@ -118,8 +118,9 @@ def eval(model, dataloader, logger, args, tokenizer):
     averager = Averager()
 
     for batch_id, batch in enumerate(dataloader, start=1):
-        if batch_id == args.eval.corrected_steps * args.optim.grad_acc:
-            break
+        if args.eval.steps > 0:
+            if batch_id == args.eval.corrected_steps * args.optim.grad_acc:
+                break
 
         _, stats = forward(model, batch, adj_forward = args.model.mode == "q_p_a")
         averager.update(stats)
