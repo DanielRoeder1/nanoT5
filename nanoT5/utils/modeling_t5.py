@@ -739,7 +739,9 @@ class KnowledgeEncoder(nn.Module):
         if enc_model is not None:
             self.enc = enc_model
         else:
-            self.enc = AutoModel.from_pretrained(model_config.know_enc_name)
+            # If pooler_output is not used results in error due to Accelerate distributed training
+            # Disable pooling layer so that all parameters have grad and are part of computation 
+            self.enc = AutoModel.from_pretrained(model_config.know_enc_name, add_pooling_layer= model_config.pooling_strategy == "cls")
         self.pooling_strategy = model_config.pooling_strategy
 
     def forward(self, enc_inputs):
@@ -750,7 +752,10 @@ class KnowledgeEncoder(nn.Module):
             return self.mean_pooling(outs, enc_inputs['attention_mask'])
     
     def cls_pooling(self,model_output):
-        return model_output.last_hidden_state[:,0]
+        if hasattr(model_output, "pooler_output"):
+            return model_output.pooler_output
+        else:
+            return model_output.last_hidden_state[:,0]
 
     def mean_pooling(self,model_output, attention_mask):
         token_embeddings = model_output[0] #First element of model_output contains all token embeddings
@@ -768,9 +773,6 @@ class T5KnowledgeWrapper(nn.Module):
         knowledge_embeddings = self.know_enc(enc_inputs)
         knowledge_embeddings = knowledge_embeddings.reshape(batch_size,-1,self.T5.config.know_dim)
         return self.T5(**t5_inputs, knowledge_embeddings = knowledge_embeddings)
-    
-    def cls_pooling(self,model_output):
-        return model_output.last_hidden_state[:,0]
 
 from transformers import DataCollatorForSeq2Seq
 class DataCollateForKnowledgeSeq2Seq:
