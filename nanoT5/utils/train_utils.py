@@ -57,7 +57,6 @@ def maybe_logging(averager, args, model, optimizer, logger):
 
 
 def maybe_grad_clip_and_grad_calc(accelerator, model, args):
-    model = model if args.model.mode != "q_p_a" else model.T5
     if args.logging.grad_l2:
         grad_l2 = (
             sum(p.grad.detach().data.norm(2).item() ** 2 for p in model.parameters()) ** 0.5
