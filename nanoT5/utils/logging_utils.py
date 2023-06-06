@@ -58,6 +58,7 @@ class Logger:
         if args.logging.wandb:
             wandb.login(key = args.logging.wandb_key)
             wandb.init(args.logging.project_name, config=args.__dict__)
+            args.logging.wandb_run_name = wandb.run.name
 
     def log_stats(self, stats, step, args, prefix=''):
         if args.logging.wandb:

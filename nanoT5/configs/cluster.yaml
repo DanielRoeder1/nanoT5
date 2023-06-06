@@ -15,7 +15,7 @@ model:
   dropout: 0.0
   random_init: false
   compile: false # Pytorch 2.0
-  mode: "q_p_a" # q_a, q_pa, qp_a, q_p_a
+  mode: ["q_p_a","q_pa","qp_a","qa"] # q_a, q_pa, qp_a, q_p_a
   know_layer: [8,9,10]
   know_dim: 768
   know_enc_name: 'sentence-transformers/all-mpnet-base-v2'
@@ -33,10 +33,10 @@ data:
 
 optim:
   name: adamwscale
-  base_lr: 2e-2
+  base_lr: 4e-3
   batch_size: 100
   total_steps: 0
-  epochs: 1 # If it's > 0 it overwrites total_steps
+  epochs: 3 # If it's > 0 it overwrites total_steps
   warmup_steps: 500
   lr_scheduler: cosine
   weight_decay: 0.0
@@ -45,7 +45,7 @@ optim:
   final_cosine: 1e-5
 
 eval:
-  every_steps: 10_000 # Don't eval
+  every_steps: 1_000 # Don't eval
   steps: 500
 
 checkpoint:

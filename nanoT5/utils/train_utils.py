@@ -12,7 +12,9 @@ def maybe_save_checkpoint(accelerator, args):
         or args.eval_save
     ):
         model_name = args.model.name.replace("/","_")
-        output_dir = f'checkpoint_{args.mode}_{args.current_train_step}_{args.model.mode}_{model_name}_{args.best_val_loss if args.eval_save else ""}'
+        loss = args.best_val_loss if args.eval_save else "default"
+        wandb_run = args.logging.wandb_run_name if hasattr(args.logging, "wandb_run_name") else None
+        output_dir = f'checkpoint_{args.mode}_{args.current_train_step}_{args.model.mode}_{model_name}_{loss}_{wandb_run}'
         if args.checkpoint.save_dir:
             output_dir = os.path.join(args.checkpoint.save_dir, output_dir)
         accelerator.save_state(output_dir=output_dir)
