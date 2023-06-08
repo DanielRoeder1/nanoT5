@@ -10,9 +10,6 @@ from hydra.utils import to_absolute_path
 def check_args_and_env(args):
     assert args.optim.batch_size % args.optim.grad_acc == 0
 
-    # Train log must happen before eval log
-    assert args.eval.every_steps % args.logging.every_steps == 0
-
     if args.device == 'gpu':
         assert torch.cuda.is_available(), 'We use GPU to train/eval the model'
 

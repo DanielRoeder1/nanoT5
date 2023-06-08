@@ -224,6 +224,10 @@ def get_dataloaders(tokenizer, args, model):
             args.optim.total_steps = (len(dataloaders['train']) // args.optim.grad_acc) * args.optim.epochs 
         if isinstance(args.eval.eval_every, float):
             args.eval.every_steps = (len(dataloaders['train']) // args.optim.grad_acc) * args.eval.every_steps 
+        
+        # Moved from gen_utils
+        # Train log must happen before eval log
+        assert args.eval.every_steps % args.logging.every_steps == 0
 
         # We increase eval BS by 2, so decrease number of eval steps
         args.eval.corrected_steps = args.eval.steps / 2
