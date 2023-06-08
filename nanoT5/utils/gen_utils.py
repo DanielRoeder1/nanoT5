@@ -18,6 +18,12 @@ def check_args_and_env(args):
 
     assert not (args.eval_only and args.predict_only)
 
+    # Creates folder in which each checkpoint is saved
+    if args.checkpoint.save_dir:
+        dir_path = f"{args.model.mode}_{args.model.name.replace('/','_')}"
+        args.checkpoint.save_dir_upd = os.path.join(args.checkpoint.save_dir, dir_path) 
+        os.makedirs(args.checkpoint.save_dir_upd, exist_ok=True)
+
     if args.predict_only:
         assert args.mode == 'ft'
 
