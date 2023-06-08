@@ -45,7 +45,7 @@ optim:
   final_cosine: 1e-5
 
 eval:
-  every_steps: 2_000
+  every_steps: 1.0 # if float then percentage of epoch trainsteps / grad_acc
   steps: -1 # if < 0 runs full eval
 
 checkpoint:
