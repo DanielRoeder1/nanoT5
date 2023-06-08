@@ -222,7 +222,7 @@ def get_dataloaders(tokenizer, args, model):
         if args.optim.epochs > 0:
             assert not is_iterable
             args.optim.total_steps = (len(dataloaders['train']) // args.optim.grad_acc) * args.optim.epochs 
-        if isinstance(args.eval.eval_every, float):
+        if isinstance(args.eval.every_steps, float):
             args.eval.every_steps = (len(dataloaders['train']) // args.optim.grad_acc) * args.eval.every_steps 
         
         # Moved from gen_utils
