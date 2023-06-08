@@ -222,6 +222,8 @@ def get_dataloaders(tokenizer, args, model):
         if args.optim.epochs > 0:
             assert not is_iterable
             args.optim.total_steps = (len(dataloaders['train']) // args.optim.grad_acc) * args.optim.epochs 
+        if isinstance(args.eval.eval_every, float):
+            args.eval.every_steps = (len(dataloaders['train']) // args.optim.grad_acc) * args.eval.every_steps 
 
         # We increase eval BS by 2, so decrease number of eval steps
         args.eval.corrected_steps = args.eval.steps / 2
