@@ -47,6 +47,11 @@ def get_args(config_path = None, load_cmd =  True):
   args.eval_save = False
   if isinstance(args.model.mode, str):
     args.model.mode = [args.model.mode]
+
+  if args.checkpoint.save_dir:
+    dir_path = f"{args.model.mode}_{args.model.name.replace('/','_')}"
+    args.checkpoint.save_dir = os.path.join(args.checkpoint.save_dir, args.model.mode) 
+    os.makedirs(args.checkpoint.save_dir, exist_ok=True)
   return args 
 
 
