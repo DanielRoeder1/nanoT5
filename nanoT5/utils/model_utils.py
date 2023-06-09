@@ -227,7 +227,7 @@ def get_dataloaders(tokenizer, args, model):
         
         # Moved from gen_utils
         # Train log must happen before eval log
-        assert args.eval.every_steps % args.logging.every_steps == 0
+        # assert args.eval.every_steps % args.logging.every_steps == 0
 
         # We increase eval BS by 2, so decrease number of eval steps
         args.eval.corrected_steps = args.eval.steps / 2

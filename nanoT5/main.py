@@ -19,10 +19,10 @@ from .utils import (
 
 
 def main():
-    args = get_args()
-    modes = args.model.mode.copy()
-    for mode in modes:
+    orig_args = get_args()
+    for mode in orig_args.model.mode:
         print(f"###### Starting training for mode: {mode} #####")
+        args = orig_args.copy()
         args.model.mode = mode
         accelerator = Accelerator(cpu=args.device == "cpu")
         logger = setup_basics(accelerator, args)
@@ -66,6 +66,7 @@ def main():
                 lr_scheduler, optimizer, logger, args, tokenizer)
 
         logger.finish()
+        del model
 
 
 if __name__ == "__main__":
