@@ -12,10 +12,10 @@ seed: 2137
 model:
   name: 'google/t5-v1_1-base'
   checkpoint_path: ''
-  dropout: 0.0
+  dropout: 0.2
   random_init: false
   compile: false # Pytorch 2.0
-  mode: ["q_p_a","q_pa","qp_a","qa"] # q_a, q_pa, qp_a, q_p_a
+  mode: ["q_p_a","q_pa","qp_a","q_a"] # q_a, q_pa, qp_a, q_p_a
   know_layer: [8,9,10]
   know_dim: 768
   know_enc_name: 'sentence-transformers/all-mpnet-base-v2'
@@ -45,7 +45,7 @@ optim:
   final_cosine: 1e-5
 
 eval:
-  every_steps: 1.0 # if float then percentage of epoch trainsteps / grad_acc
+  every_steps: 0.5 # if float then percentage of epoch trainsteps / grad_acc
   steps: -1 # if < 0 runs full eval
 
 checkpoint:
